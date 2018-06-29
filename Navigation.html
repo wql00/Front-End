@@ -61,7 +61,7 @@
                     <div class="form-group">
                         <label for="username1" class="col-sm-2 control-label">昵称：</label>
                         <div class="col-sm-10">
-                        <input class="form-control required" type="text" placeholder="Nickname" id="username1" name="username" autofocus maxlength="20"/>
+                        <input class="form-control required" type="text" placeholder="Username" id="username" name="username" autofocus maxlength="20"/>
                         </div>
                     </div>
                     <br>
@@ -69,7 +69,15 @@
                     <div class="form-group">
                         <label for="useremail" class="col-sm-2 control-label">邮箱：</label>
                         <div class="col-sm-10">
-                        <input class="form-control required" type="email" placeholder="Email" id="username1" name="username" autofocus maxlength="20"/>
+                        <input class="form-control required" type="email" placeholder="Email" id="useremail" name="useremail" autofocus maxlength="20"/>
+                        </div>
+                    </div>
+                    <br>
+                    <br>
+                    <div class="form-group">
+                        <label for="idnumber" class="col-sm-2 control-label">身份证号：</label>
+                        <div class="col-sm-10">
+                        <input class="form-control required" type="text" placeholder="Idnumber" id="idnumber" name="idnumber" autofocus maxlength="20"/>
                         </div>
                     </div>
                     <br>
@@ -85,7 +93,7 @@
                     <div class="form-group">
                         <label for="repassword" class="col-sm-2 control-label">确认密码：</label>
                         <div class="col-sm-10">
-                        <input class="form-control required" type="password" placeholder="Confirm Password" id="repassword1" name="repassword" autofocus maxlength="20"/>
+                        <input class="form-control required" type="password" placeholder="Confirm Password" id="repassword" name="repassword" autofocus maxlength="20"/>
                         </div>
                     </div>
                     <br>
@@ -111,8 +119,8 @@
                         <div class="form-horizontal col-md-offset-0" id="login_form">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <i class="fa fa-user fa-lg">昵称</i>
-                                    <input class="form-control required" type="text" placeholder="Nickname" id="username" name="username" autofocus maxlength="20"/>
+                                    <i class="fa fa-user fa-lg">邮箱</i>
+                                    <input class="form-control required" type="email" placeholder="Email" id="email" name="email" autofocus maxlength="50"/>
                                 </div>
                                 <div class="form-group">
                                     <i class="fa fa-lock fa-lg">密码</i>
@@ -133,25 +141,28 @@
         </div>
         <!--登录部分结束-->
     </body>
-    <script>
+    <script type="text/javascript">
         var url="http://154.8.211.55:8081";
     	
 		function doPostRegister()
 		{
 			//alert("qqq");
-			var val1 = document.getElementById("username1").value;
+			var val1 = document.getElementById("username").value;
             var val2 = document.getElementById("password1").value;
             var val3 = document.getElementById("repassword").value;
 			var val4 = document.getElementById("useremail").value;
+            var val5 = document.getElementById("idnumber").value;
 			var user = {
-        	"nickname":val1,
+        	"username":val1,
         	"password":val2,
-			"email":val4
+			"email":val4,
+            "idnumber":val5
         	};
+                   
 			user = JSON.stringify(user);
         	var settings = {
 			        type: "POST",
-			        url:url+"/personaluser",
+			        url:url+"/personal_user",
 			        data:user,
 			        error: function(XHR,textStatus,errorThrown) {
 			            alert("error!");
@@ -175,33 +186,63 @@
 			        
 			};
 			
+
+            var isRightForm = true;
 			if(val1=="")
 			{
 				alert("昵称不能为空！");
+                isRightForm = false;
 			}
-			else if(val2=="")
+			if(val2=="")
 			{
 				alert("密码不能为空！");
+                isRightForm = false;
 			}
-			else if(val2!=val3)
+			if(val2!=val3)
 			{
 				alert("两次输入密码不相同！");
+                isRightForm = false;
 			}
-			else if(val4=="")
+			if(val4=="")
 			{
 				alert("邮箱不能为空！");
+                isRightForm = false;
 			}
-			else
-			{
-				 $.ajax(settings);
-			}
+            
+
+            /*判断输入身份证号是否合法 */
+            /*简单判断是否为18位数字 */
+            /*
+            if(val5.length!=18){ 
+                isRightForm = false; 
+            }
+            if(!isNumber(val5)){ 
+                isRightForm = false;
+            }*/
+            
+            var reg1 = /^(\d{15}|\d{18})$/;
+            if(!reg1.test(val5)){
+                alert("身份证号输入错误！");
+                isRightForm = false;
+            }
+
+            /*判断邮箱是否格式正确 */
+            var reg2 = new RegExp("^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$"); //正则表达式
+            if(!reg2.test(val4)){
+                alert("邮箱格式输入错误！");
+                isRightForm = false;
+            }
+
+            if(isRightForm){
+                $.ajax(settings);
+            }
 		}
 		function doPostLogin()
 		{
 			//alert("qqq");
-			var val1 = document.getElementById("username").value;
+			var val1 = document.getElementById("email").value;
             var val2 = document.getElementById("password").value;
-			$.get(url+"/personaluser?username="+val1+"&password="+val2,function(data)
+			$.get(url+"/personal_user?email="+val1+"&password="+val2,function(data)
 			{
       			if(data==0)
 				{
@@ -212,64 +253,16 @@
 					var cookie="userId="+data;
 					//alert("sss");
 					document.cookie = cookie;
-					window.location.href="main.html";
+                    alert("登录成功！");
+					//window.location.href="main.html";
 				}
 			});	
 		}
-		function uname1()
-		{
-			var a=checkName();
-			$("#uname").append(a);
-		}
-		function getCookie(c_name){
-			if(document.cookie.length>0){
-				c_start=document.cookie.indexOf(c_name+"=")
-				if(c_start!=-1){
-					c_start=c_start+c_name.length+1
-					c_end=document.cookie.indexOf(";",c_start)
-					if(c_end==-1){
-						c_end=document.cookie.length
-					}
-					return unescape(document.cookie.substring(c_start,c_end))
-				}
-			}
-			return "";
-		}
-		function checkName()
-		{
-			var username=getCookie("userId");
-			if(username=="")
-			{
-				document.getElementById("lin").href="#";
-				document.getElementById("lout").href="";
-				var b="游客";
-				return b;
-			}
-			else
-			{
-				document.getElementById("lin").href="";
-				document.getElementById("lout").href="#";
-				var c="";
-				$.ajaxSettings.async=false;
-				$.get(url+"/username?userId="+username,function(data,status){
-				c=data;
-				//alert(c);
-			});
-			return c;
-			}
-		}
 		function logout() 
 		{  
-   		 setCookie("userId", "", -1);
-		 location.reload();
-		}  
-		function setCookie(cname, cvalue, exdays) 
-		{
-			var d = new Date();
-			d.setTime(d.getTime() + (exdays*24*60*60*1000));
-			var expires = "expires="+d.toUTCString();
-			document.cookie = cname + "=" + cvalue + "; " + expires;
-	    }
-		
+   		    setCookie("userId", "", -1);
+		    location.reload();
+		}
+        
     </script>
 </html>
