@@ -2,12 +2,13 @@
 <html>
     <head>
         <title>学术会议管理平台</title>
+        <meta charset="utf-8"> 
         <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
         <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
     </head>
-    <body>
+    <body onLoad="uname1()">
         <!--Navigation导航栏部分-->
         <div>
             <nav class="navbar navbar-default" role="navigation">
@@ -34,15 +35,15 @@
                         <div id="navbar">
                             <ul class="nav navbar-nav" style="margin-left: 20%">
                                 <li class="dropdown">
-                                    <a class="dropdown-toggle " data-toggle="dropdown" role="button" href="#">
-                                    游客 <span class="caret"></span>
+                                    <a href="#" id="uname" class="dropdown-toggle" data-toggle="dropdown"> 
+                                        <span class="caret"></span>
                                     </a>
                                     <ul class="dropdown-menu" role="menu" aria-labelledby="drop">
-                                        <li><a id="LogIn" href="#" data-toggle="modal" data-target="#userlogin">登录</a></li>
+                                        <li><a id="LogIn" href="#" onclick="loginShow()">登录</a></li>
                                         <li class="divider"></li>
                                         <li><a id="SignIn" href="Navigation.html">注册</a></li>
                                         <li class="divider"></li>
-                                        <li><a id="LogOut"href="#" onclick="logout">登出</a></li>
+                                        <li><a id="LogOut"href="#" onclick="logout()">登出</a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -143,7 +144,7 @@
     </body>
     <script type="text/javascript">
         var url="http://154.8.211.55:8081";
-    	
+
 		function doPostRegister()
 		{
 			//alert("qqq");
@@ -251,18 +252,83 @@
 				else
 				{
 					var cookie="userId="+data;
-					//alert("sss");
-					document.cookie = cookie;
+                    document.cookie = cookie;
+                    //alert(cookie);
                     alert("登录成功！");
-					//window.location.href="main.html";
+                    this.before_login = false;
+					window.location.href="Navigation.html";
 				}
 			});	
 		}
 		function logout() 
-		{  
+		{
    		    setCookie("userId", "", -1);
 		    location.reload();
 		}
+        function uname1()
+		{
+            //alert("uname1"+document.cookie);
+			var a=checkName();
+			$("#uname").append(a);
+		}
         
+		function getCookie(c_name)
+        {
+            //alert(c_name);
+            //alert(document.cookie);
+			if(document.cookie.length>0){
+				c_start=document.cookie.indexOf(c_name+"=");
+				if(c_start!=-1){
+					c_start=c_start+c_name.length+1;
+					c_end=document.cookie.indexOf(";",c_start);
+					if(c_end==-1){
+						c_end=document.cookie.length;
+					}
+				}
+                return unescape(document.cookie.substring(c_start,c_end));
+			}
+			return "";
+		}
+        /*
+        function getCookie(name) 
+        { 
+            var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
+            if(arr=document.cookie.match(reg))
+                return unescape(arr[2]); 
+            else 
+                return ""; 
+        }*/
+		function checkName()
+        {
+			var userid=getCookie("userId");
+			if(userid=="")
+			{
+                var b="游客";
+				return b;
+			}
+			else
+			{
+                document.getElementById("SignIn").href="#";
+                document.getElementById("LogIn").onclick=null;
+				var c="";
+				$.ajaxSettings.async=false;
+                //url=url+"/personal_user";
+			    $.get(url+"/personal_user/info?uid="+userid,function(data,status){
+				    c=data['username'];
+			    });
+			    return c;
+			}
+		}
+        function setCookie(cname, cvalue, exdays)
+        {
+		    var d = new Date();
+		    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+		    var expires = "expires="+d.toUTCString();
+		    document.cookie = cname + "=" + cvalue + "; " + expires;
+	    }
+        function loginShow()
+        {
+            $('#userlogin').modal();
+        }
     </script>
 </html>
