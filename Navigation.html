@@ -6,7 +6,12 @@
         <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
         <script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
         <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
+        <style>
+            .center {
+                float: none;
+                margin-left: 26%;
+            }
+        </style>
     </head>
     <body onLoad="uname1()">
         <!--Navigation导航栏部分-->
@@ -33,13 +38,13 @@
                     </div>
                     <div>
                         <div id="navbar">
-                            <ul class="nav navbar-nav" style="margin-left: 20%">
+                            <ul class="nav navbar-nav" style="margin-left: 15%">
                                 <li class="dropdown">
                                     <a href="#" id="uname" class="dropdown-toggle" data-toggle="dropdown"> 
                                         <span class="caret"></span>
                                     </a>
                                     <ul class="dropdown-menu" role="menu" aria-labelledby="drop">
-                                        <li><a id="LogIn" href="#" onclick="loginShow()">登录</a></li>
+                                        <li><a id="LogIn" href="#" onclick="userLogin()">登录</a></li>
                                         <li class="divider"></li>
                                         <li><a id="SignIn" href="Navigation.html">注册</a></li>
                                         <li class="divider"></li>
@@ -108,8 +113,8 @@
             </div>
         </div>
         <!--注册部分结束-->
-        <!--登录部分-->
-        <div class="modal fade" id="userlogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <!--用户登录部分-->
+        <div class="modal fade" id="userLogin" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
             <div class="modal-dialog" role="document">
                 <div class="modal-content" style="margin-top:40%">
                     <div class="modal-header">
@@ -119,14 +124,25 @@
                     <div class="modal-body">
                         <div class="form-horizontal col-md-offset-0" id="login_form">
                             <div class="col-md-12">
+                                <div class="btn-group center" id="option" data-toggle="buttons">
+                                    <label class="btn btn-default">
+                                        <input type="radio" class="toggle" value="user_option">个人用户登录
+                                    </label>
+                                    <label class="btn btn-default">
+                                        <input type="radio" class="toggle" value="institution_option">单位用户登录
+                                    </label>
+                                </div>
+                                <br>
+                                <br>
                                 <div class="form-group">
-                                    <i class="fa fa-user fa-lg">邮箱</i>
-                                    <input class="form-control required" type="email" placeholder="Email" id="email" name="email" autofocus maxlength="50"/>
+                                    <label class="control-label">邮箱/用户名</label>
+                                    <input class="form-control required" type="text" placeholder="Email/Username" id="email_username" name="email" autofocus maxlength="50"/>
                                 </div>
                                 <div class="form-group">
-                                    <i class="fa fa-lock fa-lg">密码</i>
+                                    <label class="control-label">密码</label>
                                     <input class="form-control required" type="password" placeholder="Password" id="password" name="password" maxlength="20"/>
                                 </div>
+                                
                                 <div class="form-group" >
                                     <font color="#999999">还没有账号？</font><a href="Navigation.html" color="#CCCC00">前往注册</a>
                                 </div>
@@ -140,7 +156,7 @@
                 </div>
             </div>
         </div>
-        <!--登录部分结束-->
+        <!--用户登录部分结束-->
     </body>
     <script type="text/javascript">
         var url="http://154.8.211.55:8081";
@@ -241,28 +257,48 @@
 		function doPostLogin()
 		{
 			//alert("qqq");
-			var val1 = document.getElementById("email").value;
+			var val1 = document.getElementById("email_username").value;
             var val2 = document.getElementById("password").value;
-			$.get(url+"/personal_user?email="+val1+"&password="+val2,function(data)
-			{
-      			if(data==0)
-				{
-					alert("用户名或密码不正确！");
-				}
-				else
-				{
-					var cookie="userId="+data;
-                    document.cookie = cookie;
-                    //alert(cookie);
-                    alert("登录成功！");
-                    this.before_login = false;
-					window.location.href="Navigation.html";
-				}
-			});	
+            var type = $('#option input:radio:checked').val();
+            document.cookie = "type="+type;
+            //alert(document.cookie);
+
+            if(type=="user_option"){
+                $.get(url+"/personal_user?email="+val1+"&password="+val2,function(data)
+                {
+                    if(data==0)
+                    {
+                        alert("用户名或密码不正确！");
+                    }
+                    else
+                    {
+                        //alert(document.cookie);
+                        document.cookie = "userId="+data;
+                        alert("登录成功！");
+                        window.location.href="Navigation.html";
+                    }
+                });	
+            }
+            else if(type=="institution_option"){
+                $.get(url+"/institution/login?username="+val1+"&password="+val2,function(data)
+                {
+                    if(data==0)
+                    {
+                        alert("用户名或密码不正确！");
+                    }
+                    else
+                    {
+                        document.cookie = "userId="+data;
+                        alert("登录成功！");
+                        window.location.href="Navigation.html";
+                    }
+                });	
+            }
 		}
 		function logout() 
 		{
    		    setCookie("userId", "", -1);
+            setCookie("type","",-1)
 		    location.reload();
 		}
         function uname1()
@@ -290,33 +326,55 @@
 			return "";
 		}
         /*
-        function getCookie(name) 
+        function getCookie(cname) 
         { 
-            var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
-            if(arr=document.cookie.match(reg))
-                return unescape(arr[2]); 
-            else 
-                return ""; 
+            var name = cname + "=";
+            var ca = document.cookie.split(';');
+            for(var i=0; i<ca.length; i++) 
+            {
+                var c = ca[i].trim();
+                if (c.indexOf(name)==0) 
+                    return c.substring(name.length,c.length);
+            }
+            return "";
         }*/
+
+        
 		function checkName()
         {
-			var userid=getCookie("userId");
+            var type = getCookie("type");
+			var userid = getCookie("userId");
+            //alert("userid"+userid+"  type"+type);
 			if(userid=="")
 			{
                 var b="游客";
 				return b;
 			}
-			else
+			else if(userid!="")
 			{
-                document.getElementById("SignIn").href="#";
-                document.getElementById("LogIn").onclick=null;
-				var c="";
-				$.ajaxSettings.async=false;
-                //url=url+"/personal_user";
-			    $.get(url+"/personal_user/info?uid="+userid,function(data,status){
-				    c=data['username'];
-			    });
-			    return c;
+                if(type=="user_option"){
+                    document.getElementById("SignIn").href="#";
+                    document.getElementById("LogIn").onclick=null;
+                    var c="";
+                    $.ajaxSettings.async=false;
+                    //url=url+"/personal_user";
+                    $.get(url+"/personal_user/info?uid="+userid,function(data,status){
+                        c=data['username'];
+                    });
+                    return c;
+                }
+                else if(type=="institution_option"){
+                    document.getElementById("SignIn").href="#";
+                    document.getElementById("LogIn").onclick=null;
+                    var c="";
+                    $.ajaxSettings.async=false;
+                    //url=url+"/personal_user";
+                    $.get(url+"/institution/info?institution_id="+userid,function(data,status){
+                        c=data['institutionName'];
+                    });
+                    return c;
+                }
+                
 			}
 		}
         function setCookie(cname, cvalue, exdays)
@@ -326,9 +384,13 @@
 		    var expires = "expires="+d.toUTCString();
 		    document.cookie = cname + "=" + cvalue + "; " + expires;
 	    }
-        function loginShow()
+        function userLogin()
         {
-            $('#userlogin').modal();
+            $('#userLogin').modal();
+        }
+        function institutionLogin()
+        {
+            $('#institutionLogin').modal();
         }
     </script>
 </html>
